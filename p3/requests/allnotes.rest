@@ -1,0 +1,26 @@
+
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+{
+
+    "name": "Ma Pop", 
+    "number": "39-23-6423177"
+
+}
+
+###
+
+GET http://localhost:3001/api/persons
+
+###
+
+GET http://localhost:3001/local
+
+###
+
+GET http://localhost:3001/api/persons/7
+
+###
+
+DELETE http://localhost:3001/api/persons/1
