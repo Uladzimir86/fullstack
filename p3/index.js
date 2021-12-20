@@ -1,6 +1,9 @@
+require('dotenv').config()
 const express = require('express')
-const app = express()
 const cors = require('cors')
+const Person = require('./models/person')
+
+const app = express()
 
 app.use(cors())
 app.use(express.static('build'))
@@ -13,28 +16,7 @@ const generateId = () => {
     return maxId + 1
 }
 
-let notes = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
@@ -50,59 +32,83 @@ app.get('/local', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(notes)
+
+  Person.find({}).then(result => {
+    response.json(result)
+  }).catch(err => {
+    console.log(err)
+  })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => {
-    return note.id === id
-  })
-  if (note) {
-    response.json(note)
-  } else {
-    response.statusMessage = "Current id does not match";
-    response.status(404).end()
-  }
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
-  
-    response.status(204).end()
+
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
   if (!body.name || !body.number) {
     return response.status(400).json({ 
       error: 'content missing' 
     })
   }
-  if (notes.find((item) => item.name === body.name) ) {
-    return response.status(409).json({ 
-      error: 'The name already exists in the phonebook' 
-    })
-  }
+  // if (notes.find((item) => item.name === body.name) ) {
+  //   return response.status(409).json({ 
+  //     error: 'The name already exists in the phonebook' 
+  //   })
+  // }
 
-  const note = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    date: new Date().getTime(),
-    id: generateId(),
-  }
-
-  notes = notes.concat(note)
-
-  response.json(note)
+  })
+  Person.exists({ name: body.name })
+  .then(result => {
+    if(!result) {
+      person.save().then(savedNote => {
+        response.json(savedNote)
+      })
+    } else {
+      Person
+      .findOneAndUpdate({ name: body.name }, {number: body.number}, { new: true })
+      .then(updatedNote => {
+        response.json(updatedNote)
+      })
+      .catch(error => next(error))
+    }
+  })
 })
 
-  const PORT = 3001
+  const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
   
-  const unknownEndpoint = (request, response) => {
+
+  const errorHandler = (err, request, response, next) => {
+    console.log(err.message)
+  
+    if (err.name === 'CastError') {
+      return response.status(400).send({ err: 'malformatted id' })
+    } 
+  
+    next(error)
+  }
+    const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
   }
   
   app.use(unknownEndpoint)
+  // this has to be the last loaded middleware.
+  app.use(errorHandler)
+

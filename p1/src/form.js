@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Form = ({persons, setPersons}) => {
 
@@ -7,9 +8,11 @@ const Form = ({persons, setPersons}) => {
 
     const handleForm = (e) => {
         e.preventDefault();
-        if (!persons.find(item => item.name === newName)) {
-          setPersons([...persons, {name: newName, number: newNumber}]);
-        }  else alert(`${newName} is already added to phonebook`);
+        axios
+          .post('/api/persons', {name: newName, number: newNumber}).then(response => {
+            setPersons([...persons, response.data]);
+            console.log(response.data)
+          })
       }
       const handleNameChange = (e) => {
         setNewName(e.target.value) 
