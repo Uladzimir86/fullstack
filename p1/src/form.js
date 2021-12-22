@@ -5,6 +5,7 @@ const Form = ({persons, setPersons}) => {
 
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
+    const [alert, setAlert] = useState('')
 
     const handleForm = (e) => {
         e.preventDefault();
@@ -12,6 +13,9 @@ const Form = ({persons, setPersons}) => {
           .post('/api/persons', {name: newName, number: newNumber}).then(response => {
             setPersons([...persons, response.data]);
             console.log(response.data)
+          }).catch(error => {
+            setAlert(error.message);
+            setTimeout(() => setAlert(''), 2000)
           })
       }
       const handleNameChange = (e) => {
@@ -38,6 +42,9 @@ const Form = ({persons, setPersons}) => {
         <div>
             <button type="submit">add</button>
         </div>
+       {alert && <div style={({border: '1px solid red'})}>
+          {alert}
+        </div>}
     </form>
   )
 }

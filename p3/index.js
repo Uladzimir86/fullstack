@@ -9,26 +9,26 @@ app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
 
-const generateId = () => {
-    const maxId = notes.length > 0
-      ? Math.max(...notes.map(n => n.id))
-      : 0
-    return maxId + 1
-}
+// const generateId = () => {
+//     const maxId = notes.length > 0
+//       ? Math.max(...notes.map(n => n.id))
+//       : 0
+//     return maxId + 1
+// }
 
 
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+  response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/local', (request, response) => {
-    console.log(request.body)
-    const data = `
-      <p>Phonebook has ${notes.length} people</p> <br/>
+  console.log(request.body)
+  const data = `
+      <p>Phonebook has X people</p> <br/>
       ${new Date()}
     `
-    return response.send(data)
+  return response.send(data)
 })
 
 app.get('/api/persons', (request, response) => {
@@ -42,7 +42,7 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -50,7 +50,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -58,13 +58,13 @@ app.delete('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
   if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'content missing' 
+    return response.status(400).json({
+      error: 'content missing'
     })
   }
   // if (notes.find((item) => item.name === body.name) ) {
-  //   return response.status(409).json({ 
-  //     error: 'The name already exists in the phonebook' 
+  //   return response.status(409).json({
+  //     error: 'The name already exists in the phonebook'
   //   })
   // }
 
@@ -72,43 +72,50 @@ app.post('/api/persons', (request, response, next) => {
     name: body.name,
     number: body.number,
   })
-  Person.exists({ name: body.name })
-  .then(result => {
-    if(!result) {
-      person.save().then(savedNote => {
-        response.json(savedNote)
-      })
-    } else {
-      Person
-      .findOneAndUpdate({ name: body.name }, {number: body.number}, { new: true })
-      .then(updatedNote => {
-        response.json(updatedNote)
-      })
-      .catch(error => next(error))
-    }
-  })
+  // Person.exists({ name: body.name })
+  // .then(result => {
+  //   if(!result) {
+  //     person.save().then(savedNote => {
+  //       response.json(savedNote)
+  //     })
+  //   } else {
+  //     Person
+  //     .findOneAndUpdate({ name: body.name }, {number: body.number}, { new: true })
+  //     .then(updatedNote => {
+  //       response.json(updatedNote)
+  //     })
+  //     .catch(error => next(error))
+  //   }
+  // })
+
+  person.save().then(savedNote => {
+    response.json(savedNote)
+  }).catch(error => next(error))
+
 })
 
-  const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
-  
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
 
-  const errorHandler = (err, request, response, next) => {
-    console.log(err.message)
-  
-    if (err.name === 'CastError') {
-      return response.status(400).send({ err: 'malformatted id' })
-    } 
-  
-    next(error)
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
-    const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
-  }
-  
-  app.use(unknownEndpoint)
-  // this has to be the last loaded middleware.
-  app.use(errorHandler)
+
+  next(error)
+}
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+// this has to be the last loaded middleware.
+app.use(errorHandler)
 
