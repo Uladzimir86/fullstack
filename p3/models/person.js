@@ -5,10 +5,9 @@ var uniqueValidator = require('mongoose-unique-validator')
 //   process.exit(1)
 // }
 
-// const password = process.argv[2]
+const password = process.argv[2]
 
-const url = process.env.MONGODB_URI
-// `mongodb+srv://Uladzimir:${password}@cluster0.dltk5.mongodb.net/note-app?retryWrites=true&w=majority`
+const url = process.env.MONGODB_URI || `mongodb+srv://Uladzimir:${password}@cluster0.dltk5.mongodb.net/note-app?retryWrites=true&w=majority`
 mongoose.connect(url)
 
 const noteSchema = new mongoose.Schema({

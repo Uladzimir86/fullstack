@@ -1,0 +1,17 @@
+
+POST http://localhost:3003/api/blogs
+content-type: application/json
+
+{
+
+  "title": "dfgfhyjueeeeeeeeee",
+  "author": "tu76i8rrrrrrr",
+  "url": "fdggggggggttttttt",
+  "likes": 9
+
+}
+
+###
+
+GET http://localhost:3003/api/blogs
+
