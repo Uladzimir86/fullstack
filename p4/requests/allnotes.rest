@@ -3,12 +3,11 @@ POST http://localhost:3003/api/blogs
 content-type: application/json
 
 {
-
-  "title": "dfgfhyjueeeeeeeeee",
-  "author": "tu76i8rrrrrrr",
-  "url": "fdggggggggttttttt",
-  "likes": 9
-
+    "title": "Type war",
+    "author": "Robert C. Martinyy",
+    "url": "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.htmlyy",
+    "likes": "2",
+    "__v": "0"
 }
 
 ###
